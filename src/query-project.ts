@@ -68,8 +68,34 @@ export class QueryProject {
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open("GET", url);
-      if (isJson) xhr.setRequestHeader("Content-Type", "application/json");
+      const fairwaymapperServer =
+        store.constants.SERVERS["api.fairwaymapper.com"];
+      const requestUrl = new URL(url);
+      const isFairwaymapperInterpreterRequest =
+        store.state.chosenServerURL === fairwaymapperServer &&
+        requestUrl.origin === new URL(fairwaymapperServer).origin &&
+        requestUrl.pathname === new URL(fairwaymapperServer).pathname;
+      xhr.open(
+        isFairwaymapperInterpreterRequest ? "POST" : "GET",
+        isFairwaymapperInterpreterRequest
+          ? `${requestUrl.origin}${requestUrl.pathname}`
+          : url
+      );
+      if (isFairwaymapperInterpreterRequest) {
+        xhr.setRequestHeader(
+          "Content-Type",
+          "application/x-www-form-urlencoded"
+        );
+      } else if (isJson) {
+        xhr.setRequestHeader("Content-Type", "application/json");
+      }
+      if (
+        store.state.chosenServerURL === fairwaymapperServer &&
+        requestUrl.origin === new URL(fairwaymapperServer).origin
+      ) {
+        const token = import.meta.env.VITE_FAIRWAYMAPPER_TOKEN;
+        if (token) xhr.setRequestHeader("authorization", `Bearer ${token}`);
+      }
       xhr.onload = () => {
         const currentIndex = QueryProject.requests.indexOf(xhr);
         if (currentIndex != -1) QueryProject.requests.splice(currentIndex, 1);
@@ -103,7 +129,11 @@ export class QueryProject {
         store.emptyLoadingMessage();
         store.setErrorMessage(store.errors.CONNECTION_TIMEOUT.format(url));
       };
-      xhr.send();
+      if (isFairwaymapperInterpreterRequest) {
+        xhr.send(requestUrl.searchParams.toString());
+      } else {
+        xhr.send();
+      }
       QueryProject.requests.push(xhr);
     });
   }

@@ -10,22 +10,33 @@ Just entre the #id of the task and the start date and time of the event and see 
 # Mapathon Dashboard commands
  
 ## Project setup
-```
+```shell
 npm install
 ```
 
 ### Compiles and hot-reloads for development
-```
+```shell
 npm run serve
 ```
 
 ### Compiles and minifies for production
-```
+```shell
 npm run build
 ```
 
-### Lints and fixes files
+### Fairwaymapper server
+Set `VITE_FAIRWAYMAPPER_TOKEN` in the environment before starting the dev server
+or building the app. Vite embeds this value in the frontend, so only use a token
+that is safe to expose to users.
+
+Get the token from: https://www.fairwaymapper.com/api/keys
+
+```shell
+export VITE_FAIRWAYMAPPER_TOKEN="fm_comm_XXXX"
 ```
+
+### Lints and fixes files
+```shell
 npm run lint
 ```
 
